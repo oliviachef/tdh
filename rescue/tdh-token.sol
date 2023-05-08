@@ -10,7 +10,7 @@ contract TDH is ERC20, Ownable {
     constructor() ERC20("TDH", "TDH") {
         /* calling one time (internal) mint function.
          * calls the contract to internal (initial) mint 10M tokens to the contract deployer.
-         * (10**18) defines the decimals for the token.
+         * (10**18) defines the decimals for the token. (i.e. 18)
         */
         _mint(msg.sender, 10000000 * 10**18);
     }
