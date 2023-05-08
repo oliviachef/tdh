@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
+// imports basic-erc20 token contract
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+// imports contract to be ownable.
 import "@openzeppelin/contracts/access/Ownable.sol";
+// defining "contract" (TDH) to be ERC20 & ownable.
 contract TDH is ERC20, Ownable {
+    // construct the ERC20("token-name","symbol")
     constructor() ERC20("TDH", "TDH") {
+        /* calling one time (internal) mint function.
+         *
+        */
         _mint(msg.sender, 10000000 * 10**18);
     }
 }
