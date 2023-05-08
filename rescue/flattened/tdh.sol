@@ -629,3 +629,12 @@ pragma solidity ^0.8.9;
 
 
 
+contract TDH is ERC20, Ownable {
+
+    constructor() ERC20("TDH", "TDH") {
+
+        _mint(msg.sender, 10000000 * 10**18);
+
+    }
+
+}
