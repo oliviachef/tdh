@@ -616,25 +616,14 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     ) internal virtual {}
 }
 
-
-
-// File: contracts/tdh.sol
-
+// File: tdh/tdh.sol
 
 
 pragma solidity ^0.8.9;
 
 
-
-
-
-
 contract TDH is ERC20, Ownable {
-
     constructor() ERC20("TDH", "TDH") {
-
         _mint(msg.sender, 10000000 * 10**18);
-
     }
-
 }
