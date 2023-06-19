@@ -621,7 +621,7 @@ abstract contract Ownable is Context {
 
 // OpenZeppelin Contracts (last updated v4.8.0) (utils/Address.sol)
 
-pragma solidity ^0.8.1;
+pragma solidity ^0.8.0;
 
 /**
  * @dev Collection of functions related to the address type
@@ -1843,8 +1843,9 @@ contract DruggedHuskies is ERC721Enumerable, Ownable {
 
     bool mintPaused;
     mapping(uint => bool) private minted;
+    address public dhNft = 0x1836C33b9350D18304e0F701DE777Cc7501E9C2a;
 
-    constructor () ERC721("tnft", "tnft") {
+    constructor () ERC721("The Drugged Huskies", "DH") {
         mintPaused = false;
     }
 
@@ -1857,73 +1858,31 @@ contract DruggedHuskies is ERC721Enumerable, Ownable {
 
 
         if (msg.sender != owner()) {
-            require(msg.value >= (mintPrice * _mintAmount), "not enough doge sent to contract.");
+            require(msg.value >= (mintPrice * _mintAmount), "newDH: not enough doge sent to contract.");
         }
         _mintNfts(addy, _mintAmount);
-    }
-
-    function resuceNft() external onlyOwner {
-        address dhNft = 0xd9145CCE52D386f254917e481eB44e9943F39138;
-        address teamWallet = 0xa77C4cdd935CC30D0b7186c42611bDd255d440e9;
-        address swapContract = address(0);
-
-        uint256 nftCount = IERC721Enumerable(dhNft).totalSupply();
-        uint256 currentCount = totalSupply();
-
-        if(currentCount + 5 <= nftCount){
-            uint256 mintCount = currentCount + 5;
-            for(uint256 i = currentCount; i < mintCount; ++i){
-                if(currentCount + 1 > nftCount) revert("airdrop limits reached.");
-                uint256 j = IERC721Enumerable(dhNft).tokenByIndex(i);
-
-                address nftOwner = IERC721(dhNft).ownerOf(j);
-                if(minted[j] == false){
-                    if(nftOwner != 0xf27B9704a15fFe47818fD48660D952235e9C39aF || nftOwner != 0x3E79C89f479824Bc24b9eAD73EB8c55F322FE963){
-                        if(nftOwner == 0xE046e97b43bfE688c739012b12606A8963418610){
-                            _mint(teamWallet, j);
-                            minted[j] = true;
-                        } else {
-                            _mint(nftOwner, j);
-                            minted[j] = true;
-                        }
-                    } else {
-                        _mint(swapContract, j);
-                        minted[j] = true;
-                    }
-                }
-            }
-        } else {
-            if(currentCount + 1 <= nftCount){
-                uint256 mintCount = currentCount + 1;
-                for(uint256 i = currentCount; i < mintCount; ++i){
-                    if(currentCount + 1 > nftCount) revert("airdrops limits reached.");
-                    uint256 j = IERC721Enumerable(dhNft).tokenByIndex(i);
-                    
-                    address nftOwner = IERC721(dhNft).ownerOf(j);
-                    if(minted[j] == false){
-                        if(nftOwner != 0xf27B9704a15fFe47818fD48660D952235e9C39aF || nftOwner != 0x3E79C89f479824Bc24b9eAD73EB8c55F322FE963){
-                            if(nftOwner == 0xE046e97b43bfE688c739012b12606A8963418610){
-                                _mint(teamWallet, j);
-                                minted[j] = true;
-                            } else {
-                                _mint(nftOwner, j);
-                                minted[j] = true;
-                            }
-                        } else {
-                            _mint(swapContract, j);
-                            minted[j] = true;
-                        }
-                    }
-                }
-            }
-        }
     }
 
     function airdropNft(address addy, uint256 tokenId) public onlyOwner {
         require(minted[tokenId] == false, "newDH: multiple tokenids cannot exist.");
         require(tokenId <= maxSupply, "cannot mint ids out of reach.");
         if(viewBalanceDifference(addy) > 0) {
+            minted[tokenId] = true;
             _mint(addy, tokenId);
+
+            uint256 value = 0;
+            uint256 totalSize = maxSupply - totalSupply();
+            if (rindex[tokenId] != 0) {
+                value = rindex[tokenId];
+            } else {
+                value = tokenId;
+            }
+            if (rindex[totalSize - 1] == 0) {
+                rindex[tokenId] = totalSize - 1;
+            } else {
+                rindex[tokenId] = rindex[totalSize - 1];
+            }
+            nonce++;
         } else {
             revert("this addy cannot be dropped more nfts.");
         }
@@ -1935,22 +1894,107 @@ contract DruggedHuskies is ERC721Enumerable, Ownable {
     }
 
     function viewBalanceDifference(address addy) public view returns (uint256) {
-        address dhNft = 0xd9145CCE52D386f254917e481eB44e9943F39138;
         uint256 oldBal = IERC721(dhNft).balanceOf(addy);
         uint256 newBal = IERC721(address(this)).balanceOf(addy);
         return oldBal - newBal;
     }
 
+    function rescue(uint256 amount) external onlyOwner {
+        require(amount > 0, "newDH: rescue amount cannot be zero;");
+        uint256 nftCount = IERC721Enumerable(dhNft).totalSupply();
+        require(amount <= nftCount, "oldDH: airdrop out of limits;");
+        require(amount <= maxMintPerTx, "newDH: tx limits implemented;");
+        require(totalSupply() + amount <= maxSupply, "newDH: collection limit crossed;");
+        for (uint256 i = 0; i < amount; i++){
+            uint256 nftid = viewId();
+            uint256 count = amount;
+
+            if(minted[nftid] == false){
+                count--;
+                minted[nftid] = true;
+
+                address swapContract = 0xe31Cfc612F6b0bC3a40CFc880Ce8e23F51733167;
+                address teamWallet = 0xa77C4cdd935CC30D0b7186c42611bDd255d440e9;
+                address airdropWallet = 0xAA1FF814263945274E0D26A245B699D94e89AFea;
+
+                address mantraContract = 0xf27B9704a15fFe47818fD48660D952235e9C39aF;
+                address oasisContract = 0x3E79C89f479824Bc24b9eAD73EB8c55F322FE963;
+
+                address djAddy1 = 0xE046e97b43bfE688c739012b12606A8963418610;
+                address djAddy2 = 0x4d7599644BA181f8C8d9F1A441b89707654E5cc3;
+                address jydAddy = 0x82027D1bDaF077B908Cb0cb1a92d536B518AEd4a;
+                address nftOwner = IERC721(dhNft).ownerOf(nftid); 
+
+                if(nftOwner == mantraContract || nftOwner == oasisContract){
+                    // mints the nft to swapcontract;
+                    _mint(swapContract, nftid);
+
+                } else {
+
+                    if(nftOwner == djAddy1 || nftOwner == djAddy2){
+                        // mints the nft to teamwallet;
+                        _mint(teamWallet, nftid);
+
+                    } else{
+                        
+                        if(nftOwner == jydAddy){
+                            _mint(airdropWallet, nftid);
+                        } else {
+                            _mint(nftOwner, nftid);
+                        }
+                    }
+                }
+                if(count == 0){
+                    break;
+                }
+            }
+        }
+    }
+
+    function viewId() internal returns(uint256) {
+
+        uint256 nftCount = IERC721Enumerable(dhNft).totalSupply();
+        uint256 currentCount = totalSupply();
+
+        if(currentCount + 1 <= nftCount){
+            uint256 mintCount = currentCount + 1;
+            for(uint256 i = currentCount; i < mintCount; ++i){
+                if(currentCount + 1 > nftCount) revert("airdrop limits reached.");
+                uint256 j = IERC721Enumerable(dhNft).tokenByIndex(i);
+
+                
+                // maps the id;
+                uint256 value = 0;
+                uint256 totalSize = maxSupply - totalSupply();
+                if (rindex[j] != 0) {
+                    value = rindex[j];
+                } else {
+                    value = j;
+                }
+                if (rindex[totalSize - 1] == 0) {
+                    rindex[j] = totalSize - 1;
+                } else {
+                    rindex[j] = rindex[totalSize - 1];
+                }
+                nonce++;
+
+                return(j);
+            }
+        } else {
+            revert("oldDH: out of range;");
+        }
+    }
+
     function _mintNfts(address addy, uint256 _amount) internal {
         for (uint256 i = 0; i < _amount; i++) {
-            uint256 id = randomIndex();
-            require(id <= maxSupply, "newDH: id cannot be outof limits.");
+            uint256 tokenId = randomIndex();
+            require(tokenId <= maxSupply, "newDH: id cannot be outof limits.");
             uint256 _count = _amount;
 
-            if(minted[id] == false){
+            if(minted[tokenId] == false){
                 _count--;
-                minted[id] = true;
-                _mint(addy, id);
+                minted[tokenId] = true;
+                _mint(addy, tokenId);
                 if(_count == 0){
                     break;
                 }
@@ -2011,7 +2055,11 @@ contract DruggedHuskies is ERC721Enumerable, Ownable {
     }
 
     function newMintPrice(uint256 _mintPrice) public onlyOwner {
-        mintPrice = _mintPrice;
+        mintPrice = _mintPrice * (10**18);
+    }
+
+    function newMintPriceInWei(uint256 _wei) public onlyOwner {
+        mintPrice = _wei;
     }
 
     function newMaxMintPerTx(uint256 _maxMintPerTx) public onlyOwner {
@@ -2023,7 +2071,7 @@ contract DruggedHuskies is ERC721Enumerable, Ownable {
         require(success);
     }
 
-    function paused(bool _paused) public onlyOwner {
+    function isPaused(bool _paused) public onlyOwner {
         mintPaused = _paused;
     }
 }
