@@ -1,433 +1,277 @@
-
-// File: @openzeppelin/contracts/token/ERC20/IERC20.sol
-
-
-// OpenZeppelin Contracts (last updated v4.6.0) (token/ERC20/IERC20.sol)
-
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+
+// File: @openzeppelin/contracts/utils/Counters.sol
+
+
+// OpenZeppelin Contracts v4.4.1 (utils/Counters.sol)
+
 /**
- * @dev Interface of the ERC20 standard as defined in the EIP.
+ * @title Counters
+ * @author Matt Condon (@shrugs)
+ * @dev Provides counters that can only be incremented, decremented or reset. This can be used e.g. to track the number
+ * of elements in a mapping, issuing ERC721 ids, or counting request ids.
+ *
+ * Include with `using Counters for Counters.Counter;`
  */
-interface IERC20 {
-    /**
-     * @dev Emitted when `value` tokens are moved from one account (`from`) to
-     * another (`to`).
-     *
-     * Note that `value` may be zero.
-     */
-    event Transfer(address indexed from, address indexed to, uint256 value);
+library Counters {
+    struct Counter {
+        // This variable should never be directly accessed by users of the library: interactions must be restricted to
+        // the library's function. As of Solidity v0.5.2, this cannot be enforced, though there is a proposal to add
+        // this feature: see https://github.com/ethereum/solidity/issues/4637
+        uint256 _value; // default: 0
+    }
 
-    /**
-     * @dev Emitted when the allowance of a `spender` for an `owner` is set by
-     * a call to {approve}. `value` is the new allowance.
-     */
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    function current(Counter storage counter) internal view returns (uint256) {
+        return counter._value;
+    }
 
-    /**
-     * @dev Returns the amount of tokens in existence.
-     */
-    function totalSupply() external view returns (uint256);
+    function increment(Counter storage counter) internal {
+        unchecked {
+            counter._value += 1;
+        }
+    }
 
-    /**
-     * @dev Returns the amount of tokens owned by `account`.
-     */
-    function balanceOf(address account) external view returns (uint256);
+    function decrement(Counter storage counter) internal {
+        uint256 value = counter._value;
+        require(value > 0, "Counter: decrement overflow");
+        unchecked {
+            counter._value = value - 1;
+        }
+    }
 
-    /**
-     * @dev Moves `amount` tokens from the caller's account to `to`.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {Transfer} event.
-     */
-    function transfer(address to, uint256 amount) external returns (bool);
-
-    /**
-     * @dev Returns the remaining number of tokens that `spender` will be
-     * allowed to spend on behalf of `owner` through {transferFrom}. This is
-     * zero by default.
-     *
-     * This value changes when {approve} or {transferFrom} are called.
-     */
-    function allowance(address owner, address spender) external view returns (uint256);
-
-    /**
-     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * IMPORTANT: Beware that changing an allowance with this method brings the risk
-     * that someone may use both the old and the new allowance by unfortunate
-     * transaction ordering. One possible solution to mitigate this race
-     * condition is to first reduce the spender's allowance to 0 and set the
-     * desired value afterwards:
-     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-     *
-     * Emits an {Approval} event.
-     */
-    function approve(address spender, uint256 amount) external returns (bool);
-
-    /**
-     * @dev Moves `amount` tokens from `from` to `to` using the
-     * allowance mechanism. `amount` is then deducted from the caller's
-     * allowance.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {Transfer} event.
-     */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) external returns (bool);
+    function reset(Counter storage counter) internal {
+        counter._value = 0;
+    }
 }
 
-// File: @openzeppelin/contracts/utils/math/Math.sol
+// File: @openzeppelin/contracts/utils/math/SafeMath.sol
 
 
-// OpenZeppelin Contracts (last updated v4.8.0) (utils/math/Math.sol)
+// OpenZeppelin Contracts (last updated v4.6.0) (utils/math/SafeMath.sol)
 
 pragma solidity ^0.8.0;
 
+// CAUTION
+// This version of SafeMath should only be used with Solidity 0.8 or later,
+// because it relies on the compiler's built in overflow checks.
+
 /**
- * @dev Standard math utilities missing in the Solidity language.
+ * @dev Wrappers over Solidity's arithmetic operations.
+ *
+ * NOTE: `SafeMath` is generally not needed starting with Solidity 0.8, since the compiler
+ * now has built in overflow checking.
  */
-library Math {
-    enum Rounding {
-        Down, // Toward negative infinity
-        Up, // Toward infinity
-        Zero // Toward zero
-    }
-
+library SafeMath {
     /**
-     * @dev Returns the largest of two numbers.
-     */
-    function max(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a > b ? a : b;
-    }
-
-    /**
-     * @dev Returns the smallest of two numbers.
-     */
-    function min(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a < b ? a : b;
-    }
-
-    /**
-     * @dev Returns the average of two numbers. The result is rounded towards
-     * zero.
-     */
-    function average(uint256 a, uint256 b) internal pure returns (uint256) {
-        // (a + b) / 2 can overflow.
-        return (a & b) + (a ^ b) / 2;
-    }
-
-    /**
-     * @dev Returns the ceiling of the division of two numbers.
+     * @dev Returns the addition of two unsigned integers, with an overflow flag.
      *
-     * This differs from standard division with `/` in that it rounds up instead
-     * of rounding down.
+     * _Available since v3.4._
      */
-    function ceilDiv(uint256 a, uint256 b) internal pure returns (uint256) {
-        // (a + b - 1) / b can overflow on addition, so we distribute.
-        return a == 0 ? 0 : (a - 1) / b + 1;
-    }
-
-    /**
-     * @notice Calculates floor(x * y / denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
-     * @dev Original credit to Remco Bloemen under MIT license (https://xn--2-umb.com/21/muldiv)
-     * with further edits by Uniswap Labs also under MIT license.
-     */
-    function mulDiv(
-        uint256 x,
-        uint256 y,
-        uint256 denominator
-    ) internal pure returns (uint256 result) {
+    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
         unchecked {
-            // 512-bit multiply [prod1 prod0] = x * y. Compute the product mod 2^256 and mod 2^256 - 1, then use
-            // use the Chinese Remainder Theorem to reconstruct the 512 bit result. The result is stored in two 256
-            // variables such that product = prod1 * 2^256 + prod0.
-            uint256 prod0; // Least significant 256 bits of the product
-            uint256 prod1; // Most significant 256 bits of the product
-            assembly {
-                let mm := mulmod(x, y, not(0))
-                prod0 := mul(x, y)
-                prod1 := sub(sub(mm, prod0), lt(mm, prod0))
-            }
-
-            // Handle non-overflow cases, 256 by 256 division.
-            if (prod1 == 0) {
-                return prod0 / denominator;
-            }
-
-            // Make sure the result is less than 2^256. Also prevents denominator == 0.
-            require(denominator > prod1);
-
-            ///////////////////////////////////////////////
-            // 512 by 256 division.
-            ///////////////////////////////////////////////
-
-            // Make division exact by subtracting the remainder from [prod1 prod0].
-            uint256 remainder;
-            assembly {
-                // Compute remainder using mulmod.
-                remainder := mulmod(x, y, denominator)
-
-                // Subtract 256 bit number from 512 bit number.
-                prod1 := sub(prod1, gt(remainder, prod0))
-                prod0 := sub(prod0, remainder)
-            }
-
-            // Factor powers of two out of denominator and compute largest power of two divisor of denominator. Always >= 1.
-            // See https://cs.stackexchange.com/q/138556/92363.
-
-            // Does not overflow because the denominator cannot be zero at this stage in the function.
-            uint256 twos = denominator & (~denominator + 1);
-            assembly {
-                // Divide denominator by twos.
-                denominator := div(denominator, twos)
-
-                // Divide [prod1 prod0] by twos.
-                prod0 := div(prod0, twos)
-
-                // Flip twos such that it is 2^256 / twos. If twos is zero, then it becomes one.
-                twos := add(div(sub(0, twos), twos), 1)
-            }
-
-            // Shift in bits from prod1 into prod0.
-            prod0 |= prod1 * twos;
-
-            // Invert denominator mod 2^256. Now that denominator is an odd number, it has an inverse modulo 2^256 such
-            // that denominator * inv = 1 mod 2^256. Compute the inverse by starting with a seed that is correct for
-            // four bits. That is, denominator * inv = 1 mod 2^4.
-            uint256 inverse = (3 * denominator) ^ 2;
-
-            // Use the Newton-Raphson iteration to improve the precision. Thanks to Hensel's lifting lemma, this also works
-            // in modular arithmetic, doubling the correct bits in each step.
-            inverse *= 2 - denominator * inverse; // inverse mod 2^8
-            inverse *= 2 - denominator * inverse; // inverse mod 2^16
-            inverse *= 2 - denominator * inverse; // inverse mod 2^32
-            inverse *= 2 - denominator * inverse; // inverse mod 2^64
-            inverse *= 2 - denominator * inverse; // inverse mod 2^128
-            inverse *= 2 - denominator * inverse; // inverse mod 2^256
-
-            // Because the division is now exact we can divide by multiplying with the modular inverse of denominator.
-            // This will give us the correct result modulo 2^256. Since the preconditions guarantee that the outcome is
-            // less than 2^256, this is the final result. We don't need to compute the high bits of the result and prod1
-            // is no longer required.
-            result = prod0 * inverse;
-            return result;
+            uint256 c = a + b;
+            if (c < a) return (false, 0);
+            return (true, c);
         }
     }
 
     /**
-     * @notice Calculates x * y / denominator with full precision, following the selected rounding direction.
+     * @dev Returns the subtraction of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
      */
-    function mulDiv(
-        uint256 x,
-        uint256 y,
-        uint256 denominator,
-        Rounding rounding
+    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b > a) return (false, 0);
+            return (true, a - b);
+        }
+    }
+
+    /**
+     * @dev Returns the multiplication of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+            // benefit is lost if 'b' is also tested.
+            // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+            if (a == 0) return (true, 0);
+            uint256 c = a * b;
+            if (c / a != b) return (false, 0);
+            return (true, c);
+        }
+    }
+
+    /**
+     * @dev Returns the division of two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a / b);
+        }
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a % b);
+        }
+    }
+
+    /**
+     * @dev Returns the addition of two unsigned integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `+` operator.
+     *
+     * Requirements:
+     *
+     * - Addition cannot overflow.
+     */
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a + b;
+    }
+
+    /**
+     * @dev Returns the subtraction of two unsigned integers, reverting on
+     * overflow (when the result is negative).
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a - b;
+    }
+
+    /**
+     * @dev Returns the multiplication of two unsigned integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `*` operator.
+     *
+     * Requirements:
+     *
+     * - Multiplication cannot overflow.
+     */
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a * b;
+    }
+
+    /**
+     * @dev Returns the integer division of two unsigned integers, reverting on
+     * division by zero. The result is rounded towards zero.
+     *
+     * Counterpart to Solidity's `/` operator.
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a / b;
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+     * reverting when dividing by zero.
+     *
+     * Counterpart to Solidity's `%` operator. This function uses a `revert`
+     * opcode (which leaves remaining gas untouched) while Solidity uses an
+     * invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a % b;
+    }
+
+    /**
+     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
+     * overflow (when the result is negative).
+     *
+     * CAUTION: This function is deprecated because it requires allocating memory for the error
+     * message unnecessarily. For custom revert reasons use {trySub}.
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
     ) internal pure returns (uint256) {
-        uint256 result = mulDiv(x, y, denominator);
-        if (rounding == Rounding.Up && mulmod(x, y, denominator) > 0) {
-            result += 1;
+        unchecked {
+            require(b <= a, errorMessage);
+            return a - b;
         }
-        return result;
     }
 
     /**
-     * @dev Returns the square root of a number. If the number is not a perfect square, the value is rounded down.
+     * @dev Returns the integer division of two unsigned integers, reverting with custom message on
+     * division by zero. The result is rounded towards zero.
      *
-     * Inspired by Henry S. Warren, Jr.'s "Hacker's Delight" (Chapter 11).
-     */
-    function sqrt(uint256 a) internal pure returns (uint256) {
-        if (a == 0) {
-            return 0;
-        }
-
-        // For our first guess, we get the biggest power of 2 which is smaller than the square root of the target.
-        //
-        // We know that the "msb" (most significant bit) of our target number `a` is a power of 2 such that we have
-        // `msb(a) <= a < 2*msb(a)`. This value can be written `msb(a)=2**k` with `k=log2(a)`.
-        //
-        // This can be rewritten `2**log2(a) <= a < 2**(log2(a) + 1)`
-        // → `sqrt(2**k) <= sqrt(a) < sqrt(2**(k+1))`
-        // → `2**(k/2) <= sqrt(a) < 2**((k+1)/2) <= 2**(k/2 + 1)`
-        //
-        // Consequently, `2**(log2(a) / 2)` is a good first approximation of `sqrt(a)` with at least 1 correct bit.
-        uint256 result = 1 << (log2(a) >> 1);
-
-        // At this point `result` is an estimation with one bit of precision. We know the true value is a uint128,
-        // since it is the square root of a uint256. Newton's method converges quadratically (precision doubles at
-        // every iteration). We thus need at most 7 iteration to turn our partial result with one bit of precision
-        // into the expected uint128 result.
-        unchecked {
-            result = (result + a / result) >> 1;
-            result = (result + a / result) >> 1;
-            result = (result + a / result) >> 1;
-            result = (result + a / result) >> 1;
-            result = (result + a / result) >> 1;
-            result = (result + a / result) >> 1;
-            result = (result + a / result) >> 1;
-            return min(result, a / result);
-        }
-    }
-
-    /**
-     * @notice Calculates sqrt(a), following the selected rounding direction.
-     */
-    function sqrt(uint256 a, Rounding rounding) internal pure returns (uint256) {
-        unchecked {
-            uint256 result = sqrt(a);
-            return result + (rounding == Rounding.Up && result * result < a ? 1 : 0);
-        }
-    }
-
-    /**
-     * @dev Return the log in base 2, rounded down, of a positive value.
-     * Returns 0 if given 0.
-     */
-    function log2(uint256 value) internal pure returns (uint256) {
-        uint256 result = 0;
-        unchecked {
-            if (value >> 128 > 0) {
-                value >>= 128;
-                result += 128;
-            }
-            if (value >> 64 > 0) {
-                value >>= 64;
-                result += 64;
-            }
-            if (value >> 32 > 0) {
-                value >>= 32;
-                result += 32;
-            }
-            if (value >> 16 > 0) {
-                value >>= 16;
-                result += 16;
-            }
-            if (value >> 8 > 0) {
-                value >>= 8;
-                result += 8;
-            }
-            if (value >> 4 > 0) {
-                value >>= 4;
-                result += 4;
-            }
-            if (value >> 2 > 0) {
-                value >>= 2;
-                result += 2;
-            }
-            if (value >> 1 > 0) {
-                result += 1;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * @dev Return the log in base 2, following the selected rounding direction, of a positive value.
-     * Returns 0 if given 0.
-     */
-    function log2(uint256 value, Rounding rounding) internal pure returns (uint256) {
-        unchecked {
-            uint256 result = log2(value);
-            return result + (rounding == Rounding.Up && 1 << result < value ? 1 : 0);
-        }
-    }
-
-    /**
-     * @dev Return the log in base 10, rounded down, of a positive value.
-     * Returns 0 if given 0.
-     */
-    function log10(uint256 value) internal pure returns (uint256) {
-        uint256 result = 0;
-        unchecked {
-            if (value >= 10**64) {
-                value /= 10**64;
-                result += 64;
-            }
-            if (value >= 10**32) {
-                value /= 10**32;
-                result += 32;
-            }
-            if (value >= 10**16) {
-                value /= 10**16;
-                result += 16;
-            }
-            if (value >= 10**8) {
-                value /= 10**8;
-                result += 8;
-            }
-            if (value >= 10**4) {
-                value /= 10**4;
-                result += 4;
-            }
-            if (value >= 10**2) {
-                value /= 10**2;
-                result += 2;
-            }
-            if (value >= 10**1) {
-                result += 1;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * @dev Return the log in base 10, following the selected rounding direction, of a positive value.
-     * Returns 0 if given 0.
-     */
-    function log10(uint256 value, Rounding rounding) internal pure returns (uint256) {
-        unchecked {
-            uint256 result = log10(value);
-            return result + (rounding == Rounding.Up && 10**result < value ? 1 : 0);
-        }
-    }
-
-    /**
-     * @dev Return the log in base 256, rounded down, of a positive value.
-     * Returns 0 if given 0.
+     * Counterpart to Solidity's `/` operator. Note: this function uses a
+     * `revert` opcode (which leaves remaining gas untouched) while Solidity
+     * uses an invalid opcode to revert (consuming all remaining gas).
      *
-     * Adding one to the result gives the number of pairs of hex symbols needed to represent `value` as a hex string.
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
      */
-    function log256(uint256 value) internal pure returns (uint256) {
-        uint256 result = 0;
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         unchecked {
-            if (value >> 128 > 0) {
-                value >>= 128;
-                result += 16;
-            }
-            if (value >> 64 > 0) {
-                value >>= 64;
-                result += 8;
-            }
-            if (value >> 32 > 0) {
-                value >>= 32;
-                result += 4;
-            }
-            if (value >> 16 > 0) {
-                value >>= 16;
-                result += 2;
-            }
-            if (value >> 8 > 0) {
-                result += 1;
-            }
+            require(b > 0, errorMessage);
+            return a / b;
         }
-        return result;
     }
 
     /**
-     * @dev Return the log in base 10, following the selected rounding direction, of a positive value.
-     * Returns 0 if given 0.
+     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+     * reverting with custom message when dividing by zero.
+     *
+     * CAUTION: This function is deprecated because it requires allocating memory for the error
+     * message unnecessarily. For custom revert reasons use {tryMod}.
+     *
+     * Counterpart to Solidity's `%` operator. This function uses a `revert`
+     * opcode (which leaves remaining gas untouched) while Solidity uses an
+     * invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
      */
-    function log256(uint256 value, Rounding rounding) internal pure returns (uint256) {
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         unchecked {
-            uint256 result = log256(value);
-            return result + (rounding == Rounding.Up && 1 << (result * 8) < value ? 1 : 0);
+            require(b > 0, errorMessage);
+            return a % b;
         }
     }
 }
@@ -435,50 +279,56 @@ library Math {
 // File: @openzeppelin/contracts/utils/Strings.sol
 
 
-// OpenZeppelin Contracts (last updated v4.8.0) (utils/Strings.sol)
+// OpenZeppelin Contracts (last updated v4.7.0) (utils/Strings.sol)
 
 pragma solidity ^0.8.0;
-
 
 /**
  * @dev String operations.
  */
 library Strings {
-    bytes16 private constant _SYMBOLS = "0123456789abcdef";
+    bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
     uint8 private constant _ADDRESS_LENGTH = 20;
 
     /**
      * @dev Converts a `uint256` to its ASCII `string` decimal representation.
      */
     function toString(uint256 value) internal pure returns (string memory) {
-        unchecked {
-            uint256 length = Math.log10(value) + 1;
-            string memory buffer = new string(length);
-            uint256 ptr;
-            /// @solidity memory-safe-assembly
-            assembly {
-                ptr := add(buffer, add(32, length))
-            }
-            while (true) {
-                ptr--;
-                /// @solidity memory-safe-assembly
-                assembly {
-                    mstore8(ptr, byte(mod(value, 10), _SYMBOLS))
-                }
-                value /= 10;
-                if (value == 0) break;
-            }
-            return buffer;
+        // Inspired by OraclizeAPI's implementation - MIT licence
+        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol
+
+        if (value == 0) {
+            return "0";
         }
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
     }
 
     /**
      * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation.
      */
     function toHexString(uint256 value) internal pure returns (string memory) {
-        unchecked {
-            return toHexString(value, Math.log256(value) + 1);
+        if (value == 0) {
+            return "0x00";
         }
+        uint256 temp = value;
+        uint256 length = 0;
+        while (temp != 0) {
+            length++;
+            temp >>= 8;
+        }
+        return toHexString(value, length);
     }
 
     /**
@@ -489,7 +339,7 @@ library Strings {
         buffer[0] = "0";
         buffer[1] = "x";
         for (uint256 i = 2 * length + 1; i > 1; --i) {
-            buffer[i] = _SYMBOLS[value & 0xf];
+            buffer[i] = _HEX_SYMBOLS[value & 0xf];
             value >>= 4;
         }
         require(value == 0, "Strings: hex length insufficient");
@@ -528,6 +378,113 @@ abstract contract Context {
 
     function _msgData() internal view virtual returns (bytes calldata) {
         return msg.data;
+    }
+}
+
+// File: @openzeppelin/contracts/security/Pausable.sol
+
+
+// OpenZeppelin Contracts (last updated v4.7.0) (security/Pausable.sol)
+
+pragma solidity ^0.8.0;
+
+
+/**
+ * @dev Contract module which allows children to implement an emergency stop
+ * mechanism that can be triggered by an authorized account.
+ *
+ * This module is used through inheritance. It will make available the
+ * modifiers `whenNotPaused` and `whenPaused`, which can be applied to
+ * the functions of your contract. Note that they will not be pausable by
+ * simply including this module, only once the modifiers are put in place.
+ */
+abstract contract Pausable is Context {
+    /**
+     * @dev Emitted when the pause is triggered by `account`.
+     */
+    event Paused(address account);
+
+    /**
+     * @dev Emitted when the pause is lifted by `account`.
+     */
+    event Unpaused(address account);
+
+    bool private _paused;
+
+    /**
+     * @dev Initializes the contract in unpaused state.
+     */
+    constructor() {
+        _paused = false;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only when the contract is not paused.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    modifier whenNotPaused() {
+        _requireNotPaused();
+        _;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only when the contract is paused.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    modifier whenPaused() {
+        _requirePaused();
+        _;
+    }
+
+    /**
+     * @dev Returns true if the contract is paused, and false otherwise.
+     */
+    function paused() public view virtual returns (bool) {
+        return _paused;
+    }
+
+    /**
+     * @dev Throws if the contract is paused.
+     */
+    function _requireNotPaused() internal view virtual {
+        require(!paused(), "Pausable: paused");
+    }
+
+    /**
+     * @dev Throws if the contract is not paused.
+     */
+    function _requirePaused() internal view virtual {
+        require(paused(), "Pausable: not paused");
+    }
+
+    /**
+     * @dev Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    function _pause() internal virtual whenNotPaused {
+        _paused = true;
+        emit Paused(_msgSender());
+    }
+
+    /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function _unpause() internal virtual whenPaused {
+        _paused = false;
+        emit Unpaused(_msgSender());
     }
 }
 
@@ -619,9 +576,9 @@ abstract contract Ownable is Context {
 // File: @openzeppelin/contracts/utils/Address.sol
 
 
-// OpenZeppelin Contracts (last updated v4.8.0) (utils/Address.sol)
+// OpenZeppelin Contracts (last updated v4.7.0) (utils/Address.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.1;
 
 /**
  * @dev Collection of functions related to the address type
@@ -703,7 +660,7 @@ library Address {
      * _Available since v3.1._
      */
     function functionCall(address target, bytes memory data) internal returns (bytes memory) {
-        return functionCallWithValue(target, data, 0, "Address: low-level call failed");
+        return functionCall(target, data, "Address: low-level call failed");
     }
 
     /**
@@ -752,8 +709,10 @@ library Address {
         string memory errorMessage
     ) internal returns (bytes memory) {
         require(address(this).balance >= value, "Address: insufficient balance for call");
+        require(isContract(target), "Address: call to non-contract");
+
         (bool success, bytes memory returndata) = target.call{value: value}(data);
-        return verifyCallResultFromTarget(target, success, returndata, errorMessage);
+        return verifyCallResult(success, returndata, errorMessage);
     }
 
     /**
@@ -777,8 +736,10 @@ library Address {
         bytes memory data,
         string memory errorMessage
     ) internal view returns (bytes memory) {
+        require(isContract(target), "Address: static call to non-contract");
+
         (bool success, bytes memory returndata) = target.staticcall(data);
-        return verifyCallResultFromTarget(target, success, returndata, errorMessage);
+        return verifyCallResult(success, returndata, errorMessage);
     }
 
     /**
@@ -802,37 +763,15 @@ library Address {
         bytes memory data,
         string memory errorMessage
     ) internal returns (bytes memory) {
+        require(isContract(target), "Address: delegate call to non-contract");
+
         (bool success, bytes memory returndata) = target.delegatecall(data);
-        return verifyCallResultFromTarget(target, success, returndata, errorMessage);
+        return verifyCallResult(success, returndata, errorMessage);
     }
 
     /**
-     * @dev Tool to verify that a low level call to smart-contract was successful, and revert (either by bubbling
-     * the revert reason or using the provided one) in case of unsuccessful call or if target was not a contract.
-     *
-     * _Available since v4.8._
-     */
-    function verifyCallResultFromTarget(
-        address target,
-        bool success,
-        bytes memory returndata,
-        string memory errorMessage
-    ) internal view returns (bytes memory) {
-        if (success) {
-            if (returndata.length == 0) {
-                // only check isContract if the call was successful and the return data is empty
-                // otherwise we already know that it was a contract
-                require(isContract(target), "Address: call to non-contract");
-            }
-            return returndata;
-        } else {
-            _revert(returndata, errorMessage);
-        }
-    }
-
-    /**
-     * @dev Tool to verify that a low level call was successful, and revert if it wasn't, either by bubbling the
-     * revert reason or using the provided one.
+     * @dev Tool to verifies that a low level call was successful, and revert if it wasn't, either by bubbling the
+     * revert reason using the provided one.
      *
      * _Available since v4.3._
      */
@@ -844,21 +783,17 @@ library Address {
         if (success) {
             return returndata;
         } else {
-            _revert(returndata, errorMessage);
-        }
-    }
-
-    function _revert(bytes memory returndata, string memory errorMessage) private pure {
-        // Look for revert reason and bubble it up if present
-        if (returndata.length > 0) {
-            // The easiest way to bubble the revert reason is using memory via assembly
-            /// @solidity memory-safe-assembly
-            assembly {
-                let returndata_size := mload(returndata)
-                revert(add(32, returndata), returndata_size)
+            // Look for revert reason and bubble it up if present
+            if (returndata.length > 0) {
+                // The easiest way to bubble the revert reason is using memory via assembly
+                /// @solidity memory-safe-assembly
+                assembly {
+                    let returndata_size := mload(returndata)
+                    revert(add(32, returndata), returndata_size)
+                }
+            } else {
+                revert(errorMessage);
             }
-        } else {
-            revert(errorMessage);
         }
     }
 }
@@ -955,7 +890,7 @@ abstract contract ERC165 is IERC165 {
 // File: @openzeppelin/contracts/token/ERC721/IERC721.sol
 
 
-// OpenZeppelin Contracts (last updated v4.8.0) (token/ERC721/IERC721.sol)
+// OpenZeppelin Contracts (last updated v4.7.0) (token/ERC721/IERC721.sol)
 
 pragma solidity ^0.8.0;
 
@@ -1036,9 +971,7 @@ interface IERC721 is IERC165 {
     /**
      * @dev Transfers `tokenId` token from `from` to `to`.
      *
-     * WARNING: Note that the caller is responsible to confirm that the recipient is capable of receiving ERC721
-     * or else they may be permanently lost. Usage of {safeTransferFrom} prevents loss, though the caller must
-     * understand this adds an external call which potentially creates a reentrancy vulnerability.
+     * WARNING: Usage of this method is discouraged, use {safeTransferFrom} whenever possible.
      *
      * Requirements:
      *
@@ -1162,7 +1095,7 @@ interface IERC721Metadata is IERC721 {
 // File: @openzeppelin/contracts/token/ERC721/ERC721.sol
 
 
-// OpenZeppelin Contracts (last updated v4.8.2) (token/ERC721/ERC721.sol)
+// OpenZeppelin Contracts (last updated v4.7.0) (token/ERC721/ERC721.sol)
 
 pragma solidity ^0.8.0;
 
@@ -1230,7 +1163,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
      * @dev See {IERC721-ownerOf}.
      */
     function ownerOf(uint256 tokenId) public view virtual override returns (address) {
-        address owner = _ownerOf(tokenId);
+        address owner = _owners[tokenId];
         require(owner != address(0), "ERC721: invalid token ID");
         return owner;
     }
@@ -1256,7 +1189,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         _requireMinted(tokenId);
 
         string memory baseURI = _baseURI();
-        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json")) : "";
     }
 
     /**
@@ -1277,7 +1210,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
 
         require(
             _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-            "ERC721: approve caller is not token owner or approved for all"
+            "ERC721: approve caller is not token owner nor approved for all"
         );
 
         _approve(to, tokenId);
@@ -1315,7 +1248,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         uint256 tokenId
     ) public virtual override {
         //solhint-disable-next-line max-line-length
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner nor approved");
 
         _transfer(from, to, tokenId);
     }
@@ -1340,7 +1273,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         uint256 tokenId,
         bytes memory data
     ) public virtual override {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner nor approved");
         _safeTransfer(from, to, tokenId, data);
     }
 
@@ -1373,13 +1306,6 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
     }
 
     /**
-     * @dev Returns the owner of the `tokenId`. Does NOT revert if token doesn't exist
-     */
-    function _ownerOf(uint256 tokenId) internal view virtual returns (address) {
-        return _owners[tokenId];
-    }
-
-    /**
      * @dev Returns whether `tokenId` exists.
      *
      * Tokens can be managed by their owner or approved accounts via {approve} or {setApprovalForAll}.
@@ -1388,7 +1314,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
      * and stop existing when they are burned (`_burn`).
      */
     function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return _ownerOf(tokenId) != address(0);
+        return _owners[tokenId] != address(0);
     }
 
     /**
@@ -1449,23 +1375,19 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         require(to != address(0), "ERC721: mint to the zero address");
         require(!_exists(tokenId), "ERC721: token already minted");
 
-        _beforeTokenTransfer(address(0), to, tokenId, 1);
-
-        // Check that tokenId was not minted by `_beforeTokenTransfer` hook
-        require(!_exists(tokenId), "ERC721: token already minted");
+        _beforeTokenTransfer(address(0), to, tokenId);
 
         _balances[to] += 1;
         _owners[tokenId] = to;
 
         emit Transfer(address(0), to, tokenId);
 
-        _afterTokenTransfer(address(0), to, tokenId, 1);
+        _afterTokenTransfer(address(0), to, tokenId);
     }
 
     /**
      * @dev Destroys `tokenId`.
      * The approval is cleared when the token is burned.
-     * This is an internal function that does not check if the sender is authorized to operate on the token.
      *
      * Requirements:
      *
@@ -1476,24 +1398,17 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
     function _burn(uint256 tokenId) internal virtual {
         address owner = ERC721.ownerOf(tokenId);
 
-        _beforeTokenTransfer(owner, address(0), tokenId, 1);
-
-        // Update ownership in case tokenId was transferred by `_beforeTokenTransfer` hook
-        owner = ERC721.ownerOf(tokenId);
+        _beforeTokenTransfer(owner, address(0), tokenId);
 
         // Clear approvals
-        delete _tokenApprovals[tokenId];
+        _approve(address(0), tokenId);
 
-        unchecked {
-            // Cannot overflow, as that would require more tokens to be burned/transferred
-            // out than the owner initially received through minting and transferring in.
-            _balances[owner] -= 1;
-        }
+        _balances[owner] -= 1;
         delete _owners[tokenId];
 
         emit Transfer(owner, address(0), tokenId);
 
-        _afterTokenTransfer(owner, address(0), tokenId, 1);
+        _afterTokenTransfer(owner, address(0), tokenId);
     }
 
     /**
@@ -1515,28 +1430,18 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer from incorrect owner");
         require(to != address(0), "ERC721: transfer to the zero address");
 
-        _beforeTokenTransfer(from, to, tokenId, 1);
-
-        // Check that tokenId was not transferred by `_beforeTokenTransfer` hook
-        require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer from incorrect owner");
+        _beforeTokenTransfer(from, to, tokenId);
 
         // Clear approvals from the previous owner
-        delete _tokenApprovals[tokenId];
+        _approve(address(0), tokenId);
 
-        unchecked {
-            // `_balances[from]` cannot overflow for the same reason as described in `_burn`:
-            // `from`'s balance is the number of token held, which is at least one before the current
-            // transfer.
-            // `_balances[to]` could overflow in the conditions described in `_mint`. That would require
-            // all 2**256 token ids to be minted, which in practice is impossible.
-            _balances[from] -= 1;
-            _balances[to] += 1;
-        }
+        _balances[from] -= 1;
+        _balances[to] += 1;
         _owners[tokenId] = to;
 
         emit Transfer(from, to, tokenId);
 
-        _afterTokenTransfer(from, to, tokenId, 1);
+        _afterTokenTransfer(from, to, tokenId);
     }
 
     /**
@@ -1606,64 +1511,110 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
     }
 
     /**
-     * @dev Hook that is called before any token transfer. This includes minting and burning. If {ERC721Consecutive} is
-     * used, the hook may be called as part of a consecutive (batch) mint, as indicated by `batchSize` greater than 1.
+     * @dev Hook that is called before any token transfer. This includes minting
+     * and burning.
      *
      * Calling conditions:
      *
-     * - When `from` and `to` are both non-zero, ``from``'s tokens will be transferred to `to`.
-     * - When `from` is zero, the tokens will be minted for `to`.
-     * - When `to` is zero, ``from``'s tokens will be burned.
+     * - When `from` and `to` are both non-zero, ``from``'s `tokenId` will be
+     * transferred to `to`.
+     * - When `from` is zero, `tokenId` will be minted for `to`.
+     * - When `to` is zero, ``from``'s `tokenId` will be burned.
      * - `from` and `to` are never both zero.
-     * - `batchSize` is non-zero.
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 firstTokenId,
-        uint256 batchSize
+        uint256 tokenId
     ) internal virtual {}
 
     /**
-     * @dev Hook that is called after any token transfer. This includes minting and burning. If {ERC721Consecutive} is
-     * used, the hook may be called as part of a consecutive (batch) mint, as indicated by `batchSize` greater than 1.
+     * @dev Hook that is called after any transfer of tokens. This includes
+     * minting and burning.
      *
      * Calling conditions:
      *
-     * - When `from` and `to` are both non-zero, ``from``'s tokens were transferred to `to`.
-     * - When `from` is zero, the tokens were minted for `to`.
-     * - When `to` is zero, ``from``'s tokens were burned.
+     * - when `from` and `to` are both non-zero.
      * - `from` and `to` are never both zero.
-     * - `batchSize` is non-zero.
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
     function _afterTokenTransfer(
         address from,
         address to,
-        uint256 firstTokenId,
-        uint256 batchSize
+        uint256 tokenId
     ) internal virtual {}
+}
 
+// File: @openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol
+
+
+// OpenZeppelin Contracts v4.4.1 (token/ERC721/extensions/ERC721Pausable.sol)
+
+pragma solidity ^0.8.0;
+
+
+
+/**
+ * @dev ERC721 token with pausable token transfers, minting and burning.
+ *
+ * Useful for scenarios such as preventing trades until the end of an evaluation
+ * period, or having an emergency switch for freezing all token transfers in the
+ * event of a large bug.
+ */
+abstract contract ERC721Pausable is ERC721, Pausable {
     /**
-     * @dev Unsafe write access to the balances, used by extensions that "mint" tokens using an {ownerOf} override.
+     * @dev See {ERC721-_beforeTokenTransfer}.
      *
-     * WARNING: Anyone calling this MUST ensure that the balances remain consistent with the ownership. The invariant
-     * being that for any address `a` the value returned by `balanceOf(a)` must be equal to the number of tokens such
-     * that `ownerOf(tokenId)` is `a`.
+     * Requirements:
+     *
+     * - the contract must not be paused.
      */
-    // solhint-disable-next-line func-name-mixedcase
-    function __unsafe_increaseBalance(address account, uint256 amount) internal {
-        _balances[account] += amount;
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual override {
+        super._beforeTokenTransfer(from, to, tokenId);
+
+        require(!paused(), "ERC721Pausable: token transfer while paused");
+    }
+}
+
+// File: @openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol
+
+
+// OpenZeppelin Contracts (last updated v4.7.0) (token/ERC721/extensions/ERC721Burnable.sol)
+
+pragma solidity ^0.8.0;
+
+
+
+/**
+ * @title ERC721 Burnable Token
+ * @dev ERC721 Token that can be burned (destroyed).
+ */
+abstract contract ERC721Burnable is Context, ERC721 {
+    /**
+     * @dev Burns `tokenId`. See {ERC721-_burn}.
+     *
+     * Requirements:
+     *
+     * - The caller must own `tokenId` or be an approved operator.
+     */
+    function burn(uint256 tokenId) public virtual {
+        //solhint-disable-next-line max-line-length
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner nor approved");
+        _burn(tokenId);
     }
 }
 
 // File: @openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol
 
 
-// OpenZeppelin Contracts (last updated v4.8.0) (token/ERC721/extensions/ERC721Enumerable.sol)
+// OpenZeppelin Contracts v4.4.1 (token/ERC721/extensions/ERC721Enumerable.sol)
 
 pragma solidity ^0.8.0;
 
@@ -1718,22 +1669,26 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
     }
 
     /**
-     * @dev See {ERC721-_beforeTokenTransfer}.
+     * @dev Hook that is called before any token transfer. This includes minting
+     * and burning.
+     *
+     * Calling conditions:
+     *
+     * - When `from` and `to` are both non-zero, ``from``'s `tokenId` will be
+     * transferred to `to`.
+     * - When `from` is zero, `tokenId` will be minted for `to`.
+     * - When `to` is zero, ``from``'s `tokenId` will be burned.
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     *
+     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 firstTokenId,
-        uint256 batchSize
+        uint256 tokenId
     ) internal virtual override {
-        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
-
-        if (batchSize > 1) {
-            // Will only trigger during construction. Batch transferring (minting) is not available afterwards.
-            revert("ERC721Enumerable: consecutive transfers not supported");
-        }
-
-        uint256 tokenId = firstTokenId;
+        super._beforeTokenTransfer(from, to, tokenId);
 
         if (from == address(0)) {
             _addTokenToAllTokensEnumeration(tokenId);
@@ -1821,257 +1776,191 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
     }
 }
 
-// File: tdh/DruggedHuskies.sol;
-
+// File: DruggedHuskies.sol
 
 
 pragma solidity ^0.8.0;
 
 
+contract DruggedHuskiesV4 is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pausable {
 
-
-contract DruggedHuskies is ERC721Enumerable, Ownable {
-    using Strings for uint256;
-
-    string baseURI;
-    uint256 public mintPrice = 250 ether;
-    uint256 public maxMintPerTx = 30;
+    using SafeMath for uint256;
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIdTracker;
+    
 
     uint256 public constant maxSupply = 5556;
-    uint256 internal nonce = 0;
-    uint256[maxSupply] internal rindex;
+    uint256 public PRICE = 250 ether;
+    uint256 public maxPerMint = 50;
+    address public dhNFT = 0x3c725134d74D5c45B4E4ABd2e5e2a109b5541288;
+    bool mintOwnersEnabled = true;
+    bool mintEnabled;
+    uint256 countMint;
+    string public baseTokenURI;
+    mapping(uint => bool) minted;
 
-    bool mintPaused;
-    mapping(uint => bool) private minted;
-    address public dhNft = 0x1836C33b9350D18304e0F701DE777Cc7501E9C2a;
-
-    constructor () ERC721("The Drugged Huskies", "DH") {
-        mintPaused = false;
+    constructor() ERC721("The Drugged Huskies", "TDH") {
     }
 
-    function mintRandom(address addy, uint256 _mintAmount) public payable {
-        require(_mintAmount > 0, "cannot mint zero nfts;");
-        require(_mintAmount <= maxMintPerTx, "cannot mint much nfts in single tx.");
-        require(totalSupply() <= maxSupply);
-        require(totalSupply() + _mintAmount <= maxSupply, "not enough nfts to mint.");
-        require(!mintPaused, "minting is paused. :(");
-
-
-        if (msg.sender != owner()) {
-            require(msg.value >= (mintPrice * _mintAmount), "newDH: not enough doge sent to contract.");
+    modifier saleIsOpen {
+        require(_totalSupply() <= maxSupply, "Sale end");
+        if (_msgSender() != owner()) {
+            require(!paused(), "Pausable: paused");
         }
-        _mintNfts(addy, _mintAmount);
+        _;
     }
 
-    function airdropNft(address addy, uint256 tokenId) public onlyOwner {
-        require(minted[tokenId] == false, "newDH: multiple tokenids cannot exist.");
-        require(tokenId <= maxSupply, "cannot mint ids out of reach.");
-        if(viewBalanceDifference(addy) > 0) {
-            minted[tokenId] = true;
-            _mint(addy, tokenId);
-
-            uint256 value = 0;
-            uint256 totalSize = maxSupply - totalSupply();
-            if (rindex[tokenId] != 0) {
-                value = rindex[tokenId];
-            } else {
-                value = tokenId;
-            }
-            if (rindex[totalSize - 1] == 0) {
-                rindex[tokenId] = totalSize - 1;
-            } else {
-                rindex[tokenId] = rindex[totalSize - 1];
-            }
-            nonce++;
-        } else {
-            revert("this addy cannot be dropped more nfts.");
-        }
+    function _totalSupply() internal view returns (uint) {
+        return _tokenIdTracker.current();
     }
 
-    function isMinted(uint256 tokenId) public view returns (bool) {
-        require(tokenId <= (maxSupply - 1), "newDH: nftId cannot be out of range.");
-        return minted[tokenId];
+    function totalMint() public view returns (uint256) {
+        return _totalSupply();
     }
 
-    function viewBalanceDifference(address addy) public view returns (uint256) {
-        uint256 oldBal = IERC721(dhNft).balanceOf(addy);
-        uint256 newBal = IERC721(address(this)).balanceOf(addy);
-        return oldBal - newBal;
-    }
 
-    function rescue(uint256 amount) external onlyOwner {
-        require(amount > 0, "newDH: rescue amount cannot be zero;");
-        uint256 nftCount = IERC721Enumerable(dhNft).totalSupply();
-        require(amount <= nftCount, "oldDH: airdrop out of limits;");
-        require(amount <= maxMintPerTx, "newDH: tx limits implemented;");
-        require(totalSupply() + amount <= maxSupply, "newDH: collection limit crossed;");
-        for (uint256 i = 0; i < amount; i++){
-            uint256 nftid = viewId();
-            uint256 count = amount;
-
-            if(minted[nftid] == false){
-                count--;
-                minted[nftid] = true;
-
-                address swapContract = 0xe31Cfc612F6b0bC3a40CFc880Ce8e23F51733167;
-                address teamWallet = 0xa77C4cdd935CC30D0b7186c42611bDd255d440e9;
-                address airdropWallet = 0xAA1FF814263945274E0D26A245B699D94e89AFea;
-
-                address mantraContract = 0xf27B9704a15fFe47818fD48660D952235e9C39aF;
-                address oasisContract = 0x3E79C89f479824Bc24b9eAD73EB8c55F322FE963;
-
-                address djAddy1 = 0xE046e97b43bfE688c739012b12606A8963418610;
-                address djAddy2 = 0x4d7599644BA181f8C8d9F1A441b89707654E5cc3;
-                address jydAddy = 0x82027D1bDaF077B908Cb0cb1a92d536B518AEd4a;
-                address nftOwner = IERC721(dhNft).ownerOf(nftid); 
-
-                if(nftOwner == mantraContract || nftOwner == oasisContract){
-                    // mints the nft to swapcontract;
-                    _mint(swapContract, nftid);
-
-                } else {
-
-                    if(nftOwner == djAddy1 || nftOwner == djAddy2){
-                        // mints the nft to teamwallet;
-                        _mint(teamWallet, nftid);
-
-                    } else{
-                        
-                        if(nftOwner == jydAddy){
-                            _mint(airdropWallet, nftid);
-                        } else {
-                            _mint(nftOwner, nftid);
-                        }
-                    }
-                }
-                if(count == 0){
-                    break;
-                }
-            }
-        }
-    }
-
-    function viewId() internal returns(uint256) {
-
-        uint256 nftCount = IERC721Enumerable(dhNft).totalSupply();
+    function airdropNft() public saleIsOpen {
+        uint256 nftCount = IERC721Enumerable(dhNFT).totalSupply();
         uint256 currentCount = totalSupply();
 
-        if(currentCount + 1 <= nftCount){
-            uint256 mintCount = currentCount + 1;
+        if(currentCount + 50 <= nftCount){
+            uint256 mintCount = currentCount + 50;
             for(uint256 i = currentCount; i < mintCount; ++i){
-                if(currentCount + 1 > nftCount) revert("airdrop limits reached.");
-                uint256 j = IERC721Enumerable(dhNft).tokenByIndex(i);
+                if(currentCount + 1 > nftCount) revert ("airdrop limits reached.");
+                uint256 j = IERC721Enumerable(dhNFT).tokenByIndex(i);
 
-                
-                // maps the id;
-                uint256 value = 0;
-                uint256 totalSize = maxSupply - totalSupply();
-                if (rindex[j] != 0) {
-                    value = rindex[j];
-                } else {
-                    value = j;
+                address nftOwner = IERC721(dhNFT).ownerOf(j);
+                if(minted[j] == false){
+                    _mintAnElement(nftOwner, j);
+                    minted[j] = true;
                 }
-                if (rindex[totalSize - 1] == 0) {
-                    rindex[j] = totalSize - 1;
-                } else {
-                    rindex[j] = rindex[totalSize - 1];
-                }
-                nonce++;
-
-                return(j);
             }
         } else {
-            revert("oldDH: out of range;");
+            uint256 leftCount = nftCount - currentCount;
+            if(currentCount + leftCount <= nftCount){
+                uint256 mintCount = currentCount + leftCount;
+                for(uint256 i = currentCount; i < mintCount; ++i){
+                    if(currentCount + 1 > nftCount) revert ("airdrops limits reached.");
+                    uint256 j = IERC721Enumerable(dhNFT).tokenByIndex(i);
+
+                    address nftOwner = IERC721(dhNFT).ownerOf(j);
+                    if(minted[j] == false){
+                        _mintAnElement(nftOwner, j);
+                        minted[j] = true;
+                    }
+                }
+            }
         }
     }
 
-    function _mintNfts(address addy, uint256 _amount) internal {
-        for (uint256 i = 0; i < _amount; i++) {
-            uint256 tokenId = randomIndex();
-            require(tokenId <= maxSupply, "newDH: id cannot be outof limits.");
-            uint256 _count = _amount;
 
-            if(minted[tokenId] == false){
+
+
+    function mint(uint256 _amount) public payable saleIsOpen {
+
+        address _to = msg.sender;
+        uint256 _count = _amount;
+
+        require(_count != 0, "amount must be greater than 0");
+        require(!mintOwnersEnabled, "minting is not live yet, wait for airdrop to end.");
+        require(mintEnabled, "minting is not live yet, hold on huskies.");
+        uint256 total = _totalSupply();
+        require(total + _count <= maxSupply, "max limit");
+        require(total <= maxSupply, "mint ended");
+        require(_count <= maxPerMint, "exceeds max transaction per limit");
+        require(msg.value >= price(_count), "not enough doge sent.");
+
+        uint256 _countMint = countMint;
+
+        for (uint256 i = _countMint; i < maxSupply; i++) {
+            _countMint++; 
+            if(minted[i] == false){
                 _count--;
-                minted[tokenId] = true;
-                _mint(addy, tokenId);
+                minted[i] = true;
+                _mintAnElement(_to, i);
                 if(_count == 0){
                     break;
                 }
             }
         }
+        countMint = _countMint;
     }
 
-    function randomIndex() internal returns (uint256) {
-        uint256 totalSize = maxSupply - totalSupply();
-        uint256 index = uint256(
-            keccak256(
-                abi.encodePacked(
-                    nonce,
-                    totalSupply(),
-                    msg.sender,
-                    block.difficulty,
-                    block.timestamp
-                )
-            )
-        ) % totalSize;
-        uint256 value = 0;
-        if (rindex[index] != 0) {
-            value = rindex[index];
-        } else {
-            value = index;
-        }
-        if (rindex[totalSize - 1] == 0) {
-            rindex[index] = totalSize - 1;
-        } else {
-            rindex[index] = rindex[totalSize - 1];
-        }
-        nonce++;
-        return (value);
+    function _mintAnElement(address _to, uint _idMint) private {
+        uint id = _idMint;
+        _tokenIdTracker.increment();
+        _safeMint(_to, id);
     }
+
+    function changeMinting() public onlyOwner {
+        mintOwnersEnabled = !mintOwnersEnabled;
+        mintEnabled = !mintEnabled;
+    }
+
+    function setPrice(uint256 _price) public onlyOwner {
+        PRICE = _price;
+    }
+
+    function setMaxPerMint(uint256 _max) public onlyOwner {
+        maxPerMint = _max;
+    }
+
+
+    function price(uint256 _count) public view returns (uint256) {
+        return PRICE.mul(_count);
+    }
+
 
     function _baseURI() internal view virtual override returns (string memory) {
-        return baseURI;
+        return baseTokenURI;
     }
 
-    function walletOfOwner(address _owner) public view returns (uint256[] memory) {
-        uint256 ownerTokenCount = balanceOf(_owner);
-        uint256[] memory tokenIds = new uint256[](ownerTokenCount);
-        for (uint256 i; i < ownerTokenCount; i++) {
-            tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
+
+    function setBaseURI(string memory baseURI) public onlyOwner {
+        baseTokenURI = baseURI;
+    }
+
+
+    function walletOfOwner(address _owner) external view returns (uint256[] memory) {
+        uint256 tokenCount = balanceOf(_owner);
+
+        uint256[] memory tokensId = new uint256[](tokenCount);
+        for (uint256 i = 1; i < tokenCount; i++) {
+            tokensId[i] = tokenOfOwnerByIndex(_owner, i);
         }
-        return tokenIds;
+
+        return tokensId;
     }
 
-    function tokenURI(uint256 _tokenId) public view virtual override returns (string memory) {
-        require(_exists(_tokenId), "ERC721Metadata: URI query for nonexistent token");
-        string memory currentBaseURI = _baseURI();
-        string memory id = _tokenId.toString();
-        return string(abi.encodePacked(currentBaseURI, id, ".json"));
+    function start(bool val) public onlyOwner {
+        if (val == true) {
+            _pause();
+            return;
+        }
+        _unpause();
     }
 
-    function setBaseURI(string memory _newBaseURI) public onlyOwner {
-        baseURI = _newBaseURI;
+    function withdrawAll() public onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0);
+        _widthdraw(owner(), address(this).balance);
     }
 
-    function newMintPrice(uint256 _mintPrice) public onlyOwner {
-        mintPrice = _mintPrice * (10**18);
+    function _widthdraw(address _address, uint256 _amount) private {
+        (bool success, ) = _address.call{value: _amount}("");
+        require(success, "Transfer failed.");
     }
 
-    function newMintPriceInWei(uint256 _wei) public onlyOwner {
-        mintPrice = _wei;
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual override(ERC721, ERC721Enumerable, ERC721Pausable) {
+        super._beforeTokenTransfer(from, to, tokenId);
     }
 
-    function newMaxMintPerTx(uint256 _maxMintPerTx) public onlyOwner {
-        maxMintPerTx = _maxMintPerTx;
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, ERC721Enumerable) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
-
-    function withdraw() public payable onlyOwner {
-        (bool success, ) = payable(owner()).call{value: address(this).balance}("");
-        require(success);
-    }
-
-    function isPaused(bool _paused) public onlyOwner {
-        mintPaused = _paused;
-    }
+    
 }
