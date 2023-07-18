@@ -1793,7 +1793,7 @@ contract DruggedHuskiesV4 is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pa
     uint256 public PRICE = 250 ether;
     uint256 public maxPerMint = 50;
     address public dhNFT = 0x3c725134d74D5c45B4E4ABd2e5e2a109b5541288;
-    bool mintOwnersEnabled = true;
+    bool airdropEnabled = true;
     bool mintEnabled;
     uint256 countMint;
     string public baseTokenURI;
@@ -1862,7 +1862,7 @@ contract DruggedHuskiesV4 is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pa
         uint256 _count = _amount;
 
         require(_count != 0, "amount must be greater than 0");
-        require(!mintOwnersEnabled, "minting is not live yet, wait for airdrop to end.");
+        require(!airdropEnabled, "minting is not live yet, wait for airdrop to end.");
         require(mintEnabled, "minting is not live yet, hold on huskies.");
         uint256 total = _totalSupply();
         require(total + _count <= maxSupply, "max limit");
@@ -1893,7 +1893,7 @@ contract DruggedHuskiesV4 is ERC721Enumerable, Ownable, ERC721Burnable, ERC721Pa
     }
 
     function changeMinting() public onlyOwner {
-        mintOwnersEnabled = !mintOwnersEnabled;
+        airdropEnabled = !airdropEnabled;
         mintEnabled = !mintEnabled;
     }
 
